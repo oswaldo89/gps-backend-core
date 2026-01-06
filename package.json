@@ -1,0 +1,26 @@
+{
+  "name": "gps-backend-core",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oswaldo89/gps-backend-core.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/oswaldo89/gps-backend-core/issues"
+  },
+  "homepage": "https://github.com/oswaldo89/gps-backend-core#readme",
+  "dependencies": {
+    "bullmq": "^5.66.4",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "ioredis": "^5.9.0"
+  }
+}
