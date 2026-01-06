@@ -57,11 +57,17 @@ const worker = new Worker('gps-positions', async (job) => {
             );
 
         } else {
-            // NO existe: Lo creamos automáticamente (sin Tenant por ahora)
+            // NO existe: Lo creamos automáticamente
             console.log(`✨ Dispositivo nuevo detectado: ${uniqueId}. Registrando...`);
+            
+            // CORRECCIÓN AQUI: Agregamos traccar_id al INSERT y pasamos data.device.id
             const newDevice = await pool.query(
-                'INSERT INTO devices (unique_id, name, created_at, last_update) VALUES ($1, $2, NOW(), NOW()) RETURNING device_id',
-                [uniqueId, data.device.name || 'Nuevo GPS']
+                'INSERT INTO devices (traccar_id, unique_id, name, created_at, last_update) VALUES ($1, $2, $3, NOW(), NOW()) RETURNING device_id',
+                [
+                    data.device.id,             // $1: El ID que viene de Traccar (esto faltaba)
+                    uniqueId,                   // $2
+                    data.device.name || 'Nuevo GPS' // $3
+                ]
             );
             deviceId = newDevice.rows[0].device_id;
         }
