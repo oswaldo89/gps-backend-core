@@ -25,37 +25,27 @@ const gpsQueue = new Queue('gps-positions', { connection });
 app.use(express.json());
 
 // --- RUTA PRINCIPAL (EL FORWARD) ---
+// --- RUTA PRINCIPAL (EL FORWARD PRO) ---
 app.post('/forward', async (req, res) => {
     try {
-        const data = req.body;
+        const data = req.body; // Aquí llega el JSON ya parseado
 
-        // 1. Validación rápida (Security Layer)
-        // Si no trae deviceId o uniqueId, es basura.
-        if (!data.device || !data.position) {
-            console.warn('[REJECT] Datos incompletos recibidos:', data);
-            return res.status(400).send('Bad Request');
+        console.log('📦 [POST JSON] Recibido paquete PRO:');
+        console.dir(data, { depth: null, colors: true }); // Imprime todo el árbol de datos
+
+        // Si trae posición, encolar a Redis
+        if (data.position) {
+            await gpsQueue.add('process-gps', data, {
+                removeOnComplete: 1000,
+                removeOnFail: 5000
+            });
+            console.log('✅ Enviado a la Cola Redis');
         }
 
-        // 2. Logging (Para que veas en consola qué llega)
-        console.log(`[INGEST] 📡 GPS: ${data.device.name} (${data.device.uniqueId}) | Lat: ${data.position.latitude}`);
-
-        // 3. ENCOLAMIENTO (Lo importante)
-        // Metemos el trabajo a Redis. Le ponemos un nombre ('process-gps') y los datos.
-        // removeOnComplete: true ayuda a que Redis no se llene de basura vieja.
-        await gpsQueue.add('process-gps', data, {
-            removeOnComplete: 1000, // Guardar solo los últimos 1000 éxitos
-            removeOnFail: 5000      // Guardar errores para auditoría
-        });
-
-        // 4. Respuesta Inmediata a Traccar
-        // Respondemos en < 10ms para liberar la conexión
         res.status(200).send('OK');
-
     } catch (error) {
-        console.error('[ERROR] Fallo en API Ingesta:', error);
-        // Aunque falle la cola, respondemos 200 a Traccar para que no reintente infinitamente
-        // (O puedes poner 500 si quieres que reintente)
-        res.status(200).send('Error handled');
+        console.error('❌ Error:', error);
+        res.status(200).send('Error');
     }
 });
 
