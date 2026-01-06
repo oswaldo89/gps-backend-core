@@ -64,3 +64,9 @@ app.listen(PORT, () => {
     console.log(`🚀 API de Ingesta corriendo en el puerto ${PORT}`);
     console.log(`🔗 Conectado a Redis en ${REDIS_HOST}:${REDIS_PORT}`);
 });
+
+// --- ESPÍA DE RUTAS (DEBUG) ---
+app.use((req, res, next) => {
+    console.log(`[DEBUG] Traccar está pidiendo: ${req.method} ${req.url}`);
+    next();
+});
