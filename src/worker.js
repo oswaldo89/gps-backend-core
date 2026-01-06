@@ -8,7 +8,7 @@ const pool = new Pool({
     user: process.env.DB_USER || 'app_user',        // Usuario que creamos para la App
     host: process.env.DB_HOST || '127.0.0.1',
     database: process.env.DB_NAME || 'tracking_prod',
-    password: process.env.DB_PASS || 'WGgHFudLHKqUmg3hVvvx', // <--- CAMBIA ESTO O USA .ENV
+    password: process.env.DB_PASS || '1password', // <--- CAMBIA ESTO O USA .ENV
     port: 5432,
 });
 
