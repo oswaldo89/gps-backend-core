@@ -59,6 +59,13 @@ app.post('/forward', async (req, res) => {
     }
 });
 
+// --- RUTA DEBUG PARA GET (El Parche) ---
+app.get('/forward', (req, res) => {
+    console.log('⚠️ [GET REQUEST] Traccar envió datos por URL:');
+    console.log(req.query); // Aquí veremos la data si viene por GET
+    res.status(200).send('OK');
+});
+
 // --- ARRANCAR SERVIDOR ---
 app.listen(PORT, () => {
     console.log(`🚀 API de Ingesta corriendo en el puerto ${PORT}`);
