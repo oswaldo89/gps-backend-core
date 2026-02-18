@@ -5,10 +5,10 @@ const IORedis = require('ioredis');
 
 // --- CONFIGURACIÓN DE BASE DE DATOS (POSTGRES) ---
 const pool = new Pool({
-    user: process.env.DB_USER || 'app_user',        // Usuario que creamos para la App
+    user: process.env.DB_USER || 'postgres',        // Usuario que creamos para la App
     host: process.env.DB_HOST || '127.0.0.1',
     database: process.env.DB_NAME || 'tracking_prod',
-    password: process.env.DB_PASS || '1password', // <--- CAMBIA ESTO O USA .ENV
+    password: process.env.DB_PASS || 'admin', // <--- CAMBIA ESTO O USA .ENV
     port: 5432,
 });
 
@@ -25,7 +25,7 @@ console.log("👷 WORKER INICIADO: Esperando datos de GPS...");
 const worker = new Worker('gps-positions', async (job) => {
     const data = job.data;
     const uniqueId = data.device.uniqueId;
-    
+
     // 1. FILTRADO DE DATOS (Limpieza)
     // Aquí quitamos la basura (io1, io2) y dejamos solo lo valioso
     const cleanAttributes = {
@@ -40,7 +40,7 @@ const worker = new Worker('gps-positions', async (job) => {
         // 2. BUSCAR O CREAR DISPOSITIVO (Auto-Provisioning)
         // Buscamos el ID interno en NUESTRA base de datos usando el IMEI
         let deviceQuery = await pool.query(
-            'SELECT device_id FROM devices WHERE unique_id = $1', 
+            'SELECT device_id FROM devices WHERE unique_id = $1',
             [uniqueId]
         );
 
@@ -49,7 +49,7 @@ const worker = new Worker('gps-positions', async (job) => {
         if (deviceQuery.rows.length > 0) {
             // Ya existe, usamos su ID
             deviceId = deviceQuery.rows[0].device_id;
-            
+
             // Opcional: Actualizar 'last_update' y 'is_online' en la tabla devices
             await pool.query(
                 'UPDATE devices SET last_update = NOW(), is_online = $1 WHERE device_id = $2',
@@ -59,7 +59,7 @@ const worker = new Worker('gps-positions', async (job) => {
         } else {
             // NO existe: Lo creamos automáticamente
             console.log(`✨ Dispositivo nuevo detectado: ${uniqueId}. Registrando...`);
-            
+
             // CORRECCIÓN AQUI: Agregamos traccar_id al INSERT y pasamos data.device.id
             const newDevice = await pool.query(
                 'INSERT INTO devices (traccar_id, unique_id, name, created_at, last_update) VALUES ($1, $2, $3, NOW(), NOW()) RETURNING device_id',
@@ -97,7 +97,7 @@ const worker = new Worker('gps-positions', async (job) => {
         ];
 
         await pool.query(insertQuery, values);
-        
+
         console.log(`💾 [GUARDADO] ${uniqueId} | Lat: ${data.position.latitude} | Ignición: ${cleanAttributes.ignition}`);
 
     } catch (err) {
